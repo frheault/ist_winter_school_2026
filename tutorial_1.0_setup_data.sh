@@ -1,34 +1,22 @@
 #!/bin/bash
+# For pedagogical context, notes, and tips, refer to NOTEBOOK.md.
 #
 # ======================================================================
-# dMRI Winter School - Tutorial 0.0
+# dMRI Winter School - hands-on 0.0
 #
 # Theme: Setup and Data Download
 #
-# Goal: To create a BIDS-compliant directory structure and simulate
-#       the presence of our raw dataset for the hands-on sessions.
+# Goal: To create a BIDS-compliant directory structure and simulate the
+#       presence of our raw dataset for the hands-on sessions.
 #
 # Outputs:
-#   - A 'winter_school_data' directory with a BIDS-like structure.
+#   - A 'bids_data' directory with a BIDS-like structure.
 #   - Placeholder files for raw DWI and T1w data.
 # ======================================================================
 
-# ---
-#
-# ## Step 1: Create the BIDS Directory Structure
-#
-# # Pedagogical Context:
-# # The Brain Imaging Data Structure (BIDS) is a standard for organizing
-# # neuroimaging data. It makes datasets easy to understand and use with
-# # automated analysis tools (like pyAFQ, which we'll use on Day 4).
-# # A typical structure includes subject, session, and data type directories.
-# #
-# # - sub-01: Subject 01
-# # - ses-01: Session 01
-# # - dwi/:    Directory for Diffusion-Weighted Imaging data
-# # - anat/:   Directory for Anatomical data (like a T1w image)
-#
+# Step 1: Create the BIDS Directory Structure
 
+unzip dicom_filtered_sub01.zip -d data/
 mkdir nifti_data
 dcm2niix -o nifti_data/ -z y dicom_data/12_09_2023_MT_orientation_sub01/
 

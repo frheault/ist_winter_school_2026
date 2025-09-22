@@ -1,12 +1,13 @@
 #!/bin/bash
+# For pedagogical context, notes, and tips, refer to NOTEBOOK.md.
 #
 # ======================================================================
-# dMRI Winter School - Tutorial 4.4 (Part 2: Tractometry) - SCILPY Version
+# dMRI Winter School - hands-on 4.4 (Part 2: Tractometry) - SCILPY Version
 #
 # Theme: Quantitative Analysis - From tracts to tables with Scilpy
 #
-# Goal: To generate tract profiles for a set of segmented bundles using
-#       a command-line pipeline, inspired by modern tractometry workflows.
+# Goal: To generate tract profiles for a set of segmented bundles using a
+#       command-line pipeline, inspired by modern tractometry workflows.
 #
 # Inputs:
 #   - A directory of segmented bundles (e.g., 'bundleseg_automated/')
@@ -18,14 +19,14 @@
 # ======================================================================
 
 # ---
-# ## Step 0: Setup and Configuration ##
+# Step 0: Setup and Configuration #
 # ---
 echo "Step 0: Setting up paths and creating output directories..."
 
-# Input directory containing the segmented bundles from Tutorial 3.6
+# Input directory containing the segmented bundles from hands-on session 3.6
 BUNDLE_DIR="bundleseg_automated"
 
-# Input scalar metric maps from Tutorial 2.3
+# Input scalar metric maps from hands-on session 2.3
 FA_MAP="fa.nii.gz"
 MD_MAP="md.nii.gz"
 
@@ -37,12 +38,8 @@ echo "Setup complete."
 echo
 
 # ---
-# ## Main Loop: Process each bundle ##
+# Main Loop: Process each bundle #
 # ---
-# # Pedagogical Context:
-# # The core of this pipeline is a loop that iterates over every bundle
-# # in our input directory and performs the same sequence of operations.
-# # This is a common strategy for processing many subjects or bundles.
 
 echo "Starting tractometry pipeline for all bundles in ${BUNDLE_DIR}..."
 echo
@@ -52,44 +49,32 @@ for bundle_file in ${BUNDLE_DIR}/*.trk; do
     bname=$(basename "$bundle_file" .trk)
     echo "--- Processing bundle: ${bname} ---"
 
-    # ---
-    # ## Step 1: Compute Bundle Centroid ##
-    # # Pedagogical Context:
-    # # To create a tract profile, we need a consistent frame of reference.
-    # # We compute a "centroid" streamline, which represents the average
-    # # trajectory of all streamlines in the bundle.
+# ---
+# Step 1: Compute Bundle Centroid #
+# ---
     echo "  Step 1.1: Computing centroid..."
     centroid_file="${TRACTOMETRY_DIR}/${bname}_centroid.trk"
     scil_bundle_compute_centroid "$bundle_file" "$centroid_file" --nb_points 100 -f
 
-    # ---
-    # ## Step 2: Create Label and Distance Maps ##
-    # # Pedagogical Context:
-    # # Now we map each point of each streamline to the closest point on the
-    # # centroid. This generates a "label map", which is essential for
-    # # averaging metric values at corresponding points along the bundle.
+# ---
+# Step 2: Create Label and Distance Maps #
+# ---
     echo "  Step 1.2: Creating label map for profiling..."
     label_map_dir="${TRACTOMETRY_DIR}/${bname}_labelling"
     scil_bundle_label_map "$bundle_file" "$centroid_file" "$label_map_dir" -f
     label_map_file="${label_map_dir}/labels_map.nii.gz"
 
-    # ---
-    # ## Step 3: Calculate Whole-Bundle Statistics ##
-    # # Pedagogical Context:
-    # # First, we'll compute the average metric value across the entire
-    # # volume of the bundle. This gives us a single number per metric
-    # # for the whole bundle.
+# ---
+# Step 3: Calculate Whole-Bundle Statistics #
+# ---
     echo "  Step 1.3: Calculating whole-bundle statistics..."
     whole_bundle_json="${TRACTOMETRY_DIR}/json_tmp/${bname}_whole_bundle.json"
     scil_bundle_mean_std "$bundle_file" "$FA_MAP" "$MD_MAP" \
         --out_json "$whole_bundle_json" --density_weighting
 
-    # ---
-    # ## Step 4: Calculate Tract Profiles (Per-Point Statistics) ##
-    # # Pedagogical Context:
-    # # This is the core of tractometry. Using the label map, we can now
-    # # calculate the average metric value at each of the 100 points
-    # # along the bundle's length, giving us a detailed profile.
+# ---
+# Step 4: Calculate Tract Profiles (Per-Point Statistics) #
+# ---
     echo "  Step 1.4: Calculating tract profiles (per-point stats)..."
     profile_json="${TRACTOMETRY_DIR}/json_tmp/${bname}_profile.json"
     scil_bundle_mean_std "$bundle_file" "$FA_MAP" "$MD_MAP" \
@@ -101,12 +86,8 @@ for bundle_file in ${BUNDLE_DIR}/*.trk; do
 done
 
 # ---
-# ## Step 5: Aggregate All Results ##
+# Step 5: Aggregate All Results #
 # ---
-# # Pedagogical Context:
-# # We now have many small JSON files, one for each bundle and statistic type.
-# # The final step is to merge them all into one comprehensive file for
-# # easy analysis.
 echo "Step 5: Aggregating all results into a single JSON file..."
 scil_json_merge_entries ${TRACTOMETRY_DIR}/json_tmp/*.json tractometry_results.json \
     --no_list --add_parent_key "sub-01"
@@ -114,8 +95,8 @@ echo "Aggregation complete."
 echo
 
 # ---
-# ## Final Output ##
+# Final Output #
 # ---
 echo "Tractometry pipeline finished!"
 echo "The final results are in 'tractometry_results.json'."
-echo "This file contains both whole-bundle and per-point profile data for all bundles."
+# This file contains both whole-bundle and per-point profile data for all# bundles.

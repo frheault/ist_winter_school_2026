@@ -1,0 +1,8 @@
+bids_data/
+dicom_data/
+nifti_data/
+*.nii
+*.nii.gz
+*.csv
+*.trk
+*.tck

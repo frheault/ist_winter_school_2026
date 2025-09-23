@@ -8,8 +8,9 @@ This guide is a personal reference for the dMRI Winter School hands-on tutorials
 
 ### Step 1: Create BIDS directory structure
 
-* **Context**: The first step is to organize our data according to the Brain Imaging Data Structure (BIDS) standard. This standardized format is crucial for using many automated analysis tools and ensures our project is understandable and reproducible.
+* **Context**: The first step is to organize our data according to the Brain Imaging Data Structure (BIDS) standard. This standardized format is central for using many automated analysis tools and ensures our project is understandable and reproducible.
 * **Action**: The script unzips the raw DICOM data, converts it to NIfTI format using `dcm2niix`, creates the BIDS directory structure (`sub-01/ses-01/anat` and `sub-01/ses-01/dwi`), and populates it with the appropriate T1w and DWI files.
+* For a real database, you should look into [dcm2bids](https://unfmontreal.github.io/Dcm2Bids/3.2.0/)
 
 ---
 
@@ -29,7 +30,7 @@ This guide is a personal reference for the dMRI Winter School hands-on tutorials
 
 * **Context**: Brain extraction is essential to remove non-brain tissue (skull, skin, etc.) from the image. This focuses subsequent analyses only on the brain. A good brain mask is critical for accurate results.
 * **Action**: Although omitted in the final script, this step typically involves using FSL's `bet` tool on the b0 image to generate a brain mask.
-* **Command explanation**: The `bet` command has a crucial `-f` parameter that sets the fractional intensity threshold. This often needs to be adjusted for different datasets to avoid cutting off parts of the brain or including parts of the skull.
+* **Command explanation**: The `bet` command has a `-f` parameter that sets the fractional intensity threshold. This often needs to be adjusted for different datasets to avoid cutting off parts of the brain or including parts of the skull.
 * **Quality control**: Load `b0.nii.gz` and the resulting `b0_brain_mask.nii.gz` in `mrview`. You must overlay the mask on the b0 image to ensure it accurately covers all brain tissue without including the skull or cutting into the cortex. A bad mask will negatively impact all following steps.
 
 ### Step 4: Fit the DTI model and calculate scalar maps

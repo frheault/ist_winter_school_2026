@@ -33,32 +33,29 @@
 
 echo "Step 1: Inspecting DWI data headers with mrinfo..."
 mrinfo bids_data/sub-01/ses-01/dwi/dwi.nii.gz
+# Try with: fslhd bids_data/sub-01/ses-01/dwi/dwi.nii.gz
+# Try with: scil_header_info
 
-echo "Step 1: Inspecting DWI data headers with fslhd..."
-fslhd bids_data/sub-01/ses-01/dwi/dwi.nii.gz
 
 echo "Step 1: Inspecting T1w data headers with mrinfo..."
 mrinfo bids_data/sub-01/ses-01/anat/t1.nii.gz
 
 # Step 2: Inspect and Visualize b-values and b-vectors
-
 echo "Step 2: Displaying b-values and b-vectors (first few lines)..."
 head -n 1 bids_data/sub-01/ses-01/dwi/dwi.bval
 head -n 3 bids_data/sub-01/ses-01/dwi/dwi.bvec
 
 # Step 3: Extract b0 image
-
 echo "Step 3: Extracting b0 image..."
-dwiextract -fslgrad bids_data/sub-01/ses-01/dwi/dwi.bvec bids_data/sub-01/ses-01/dwi/dwi.bval -bzero bids_data/sub-01/ses-01/dwi/dwi.nii.gz - | mrmath - mean b0.nii.gz -axis 3
+dwiextract -fslgrad bids_data/sub-01/ses-01/dwi/dwi.bvec bids_data/sub-01/ses-01/dwi/dwi.bval -bzero bids_data/sub-01/ses-01/dwi/dwi.nii.gz
+mrmath b0.nii.gz mean b0_mean.nii.gz -axis 3
 
 # Step 4: Skull-Stripping (BET) of b0 and applying it to DWI
-
+bet b0_mean.nii.gz -f 0.16
 
 # Step 5: Fit the DTI model
-
 echo "Step 5: Fitting the Diffusion Tensor model..."
 dwi2tensor bids_data/sub-01/ses-01/dwi/dwi.nii.gz dti.nii.gz -mask b0_brain_mask.nii.gz -fslgrad bids_data/sub-01/ses-01/dwi/dwi.bvec bids_data/sub-01/ses-01/dwi/dwi.bval
 
 # Step 6: Calculate Scalar Maps (FA, MD, RGB, EV)
-
 echo "Tutorial 2.3 completed. Please inspect the generated FA and RGB maps in mrview for quality control."

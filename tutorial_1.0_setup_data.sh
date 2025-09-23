@@ -26,4 +26,4 @@ mkdir -p bids_data/sub-01/ses-01/anat
 mrconvert nifti_data/dicom_data_WIP_DWI_20230912152935_1201.nii.gz bids_data/sub-01/ses-01/dwi/dwi.nii.gz -stride 1,2,3,4
 cp nifti_data/dicom_data_WIP_DWI_20230912152935_1201.bval bids_data/sub-01/ses-01/dwi/dwi.bval
 cp nifti_data/dicom_data_WIP_DWI_20230912152935_1201.bvec bids_data/sub-01/ses-01/dwi/dwi.bvec
-cp nifti_data/dicom_data_WIP_3D_T1_20230912152935_901.nii.gz bids_data/sub-01/ses-01/anat/t1.nii.gz -stride 1,2,3,4
+cp nifti_data/dicom_data_WIP_3D_T1_20230912152935_901.nii.gz bids_data/sub-01/ses-01/anat/t1.nii.gz

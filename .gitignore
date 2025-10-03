@@ -6,3 +6,6 @@ nifti_data/
 *.csv
 *.trk
 *.tck
+*.mif
+*.mat
+*.txt

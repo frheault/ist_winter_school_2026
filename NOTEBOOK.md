@@ -31,7 +31,7 @@ This guide is a personal reference for the dMRI Winter School hands-on tutorials
 * **Context**: Brain extraction is essential to remove non-brain tissue (skull, skin, etc.) from the image. This focuses subsequent analyses only on the brain. A good brain mask is critical for accurate results.
 * **Action**: Although omitted in the final script, this step typically involves using FSL's `bet` tool on the b0 image to generate a brain mask.
 * **Command explanation**: The `bet` command has a `-f` parameter that sets the fractional intensity threshold. This often needs to be adjusted for different datasets to avoid cutting off parts of the brain or including parts of the skull.
-* **Quality control**: Load `b0.nii.gz` and the resulting `b0_brain_mask.nii.gz` in `mrview`. You must overlay the mask on the b0 image to ensure it accurately covers all brain tissue without including the skull or cutting into the cortex. A bad mask will negatively impact all following steps.
+* **Quality control**: Load `b0.nii.gz` and the resulting `b0_mean_bet_mask.nii.gz` in `mrview`. You must overlay the mask on the b0 image to ensure it accurately covers all brain tissue without including the skull or cutting into the cortex. A bad mask will negatively impact all following steps.
 
 ### Step 4: Fit the DTI model and calculate scalar maps
 

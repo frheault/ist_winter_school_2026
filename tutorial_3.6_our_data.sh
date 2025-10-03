@@ -12,7 +12,7 @@
 #
 # Inputs:
 #   - wmfod.nii.gz (fODFs from hands-on session 3.3)
-#   - dwi_b0_brain_mask.nii.gz (Brain mask from Day 2)
+#   - b0_b0_mean_bet_mask.nii.gz (Brain mask from Day 2)
 #   - fa_synthseg.nii.gz (Anatomical segmentation from hands-on session 2.6)
 #
 # Outputs:
@@ -22,19 +22,21 @@
 # ======================================================================
 
 WMFOD="wmfod.nii.gz"
-MASK="b0_brain_mask.nii.gz"
+MASK="b0_mean_bet_mask.nii.gz"
 ATLAS="fa_cc.nii.gz"
 
 # ---
 #
 # Step 0: Generate a Whole-Brain Tractogram
 #
-mri_synthseg --i b0_brain.nii.gz --o b0_synthseg.nii.gz --robust --parc --cpu
-ATLAS="b0_synthseg.nii.gz.nii.gz"
+mri_synthseg --i b0_mean_bet.nii.gz --o b0_synthseg.nii.gz --robust --parc --cpu
+ATLAS="b0_synthseg.nii.gz"
 
 echo "Step 0: Generating a whole-brain tractogram (100k streamlines)..."
 # Create a whole-brain seed mask (in this case, the brain mask is sufficient)
 tckgen "$WMFOD" wb_100k.tck -seed_image "$MASK" -mask "$MASK" -select 100000
+# scilpy alternative for tckgen
+# scil_tracking_local "$WMFOD" "$MASK" "$MASK" wb_100k.tck --algo prob --nt 100000
 echo "Generated wb_100k.tck"
 echo
 
@@ -48,7 +50,13 @@ echo "Step 1: Performing manual-style segmentation of the Corticospinal Tract...
 # Label 1024: Left Precentral Gyrus
 # Label 16: Brainstem
 mrcalc "$ATLAS" 1024 -eq precentral_L_roi.nii.gz
+# scilpy alternative for mrcalc
+# scil_volume_math lower_threshold_eq "$ATLAS" 1024 precentral_L_roi.nii.gz
+# scil_volume_math upper_threshold_eq precentral_L_roi.nii.gz 1024 precentral_L_roi.nii.gz -f
 mrcalc "$ATLAS" 16 -eq brainstem_roi.nii.gz
+# scilpy alternative for mrcalc
+# scil_volume_math lower_threshold_eq "$ATLAS" 16 brainstem_roi.nii.gz
+# scil_volume_math upper_threshold_eq brainstem_roi.nii.gz 16 brainstem_roi.nii.gz -f
 
 # Command Explanation:
 # 'tckedit' is the MRtrix tool for filtering tractograms.
@@ -57,6 +65,8 @@ mrcalc "$ATLAS" 16 -eq brainstem_roi.nii.gz
 # streamlines that pass through precentral_L_roi.nii.gz AND also
 # pass through brainstem_roi.nii.gz".
 tckedit wb_100k.tck CST_L.tck -include precentral_L_roi.nii.gz -include brainstem_roi.nii.gz
+# scilpy alternative for tckedit
+# scil_tractogram_filter_by_roi wb_100k.tck CST_L.tck --drawn_roi precentral_L_roi.nii.gz either_end include --drawn_roi brainstem_roi.nii.gz either_end include --reference "$MASK"
 echo "Generated CST_L.tck"
 echo
 
@@ -77,7 +87,7 @@ rm atlas.zip config.zip
 # 'scil_tractogram_segment_with_bundleseg.py' is the script for this task.
 # It takes the whole-brain tractogram and a directory for the output bundles.
 # --bdo : Specifies the output directory for bundle-specific data objects.
-scil_tractogram_segment_with_bundleseg wb_100k.tck zenodo_scil_atlas/config_fss_1.json zenodo_scil_atlas/atlas/ from_mni0GenericAffine.mat --out_dir bundleseg_automated --inverse --processes 4
+scil_tractogram_segment_with_bundleseg wb_100k.tck zenodo_scil_atlas/config_fss_1.json zenodo_scil_atlas/atlas/ from_mni0GenericAffine.mat --out_dir bundleseg_automated --inverse --processes 4 -v DEBUG --reference b0_mean_bet.nii.gz
 echo "Automated segmentation complete. Results are in the 'bundleseg_automated' directory."
 echo
 

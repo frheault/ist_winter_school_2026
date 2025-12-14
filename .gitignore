@@ -12,5 +12,6 @@ nifti_data/
 *.json
 *.sif
 zenodo_scil_atlas/
-/bundleseg_automated/
+bundleseg_automated/
+connections/
 installation_check.log

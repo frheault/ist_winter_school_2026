@@ -17,17 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Fetch install script in docker.
-RUN mkdir /install
-COPY ./install_freesurfer.sh /install/
-RUN ["chmod", "+x", "/install/install_freesurfer.sh"]
-SHELL ["/bin/bash", "--login", "-c"]
-
-ARG FREESURFER_URL=default
-
-RUN /install/install_freesurfer.sh /opt --upx --url $FREESURFER_URL
+RUN wget --no-check-certificate -qO- "https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.4.1/freesurfer-linux-ubuntu22_amd64-7.4.1.tar.gz"  | tar zxv --no-same-owner -C /opt/
 RUN rm /opt/freesurfer/bin/fspython
-RUN rm -R /install
 
 # Main stage from scilus base image.
 FROM $SCILUS_BASE_IMAGE AS runtime
@@ -70,9 +61,13 @@ ENV OS=Linux \
     PYTHONUNBUFFERED=0 \
     MPLCONFIGDIR=/tmp \
     PATH=/venv/bin:/opt/freesurfer/bin:$PATH \
-    PYTHONPATH=/opt/freesurfer/python/packages:$PYTHONPATH \
+    PYTHONPATH=/opt/freesurfer/python/packages \
     DO_NOT_SEARCH_FS_LICENSE_IN_FREESURFER_HOME="true"
 
 COPY --from=build_freesurfer /opt/freesurfer /opt/freesurfer
 
 RUN wget -O /opt/freesurfer/.license "https://www.dropbox.com/s/zs4k3bcfxderj58/license.txt?dl=0"
+
+# How to build the Docker/Singularity
+# docker build . -t "ist_ws_2026" --rm --no-cache
+# singularity build ist_ws_2026.sif docker-daemon://ist_ws_2026:latest

@@ -59,7 +59,7 @@ mrmath b0.nii.gz mean b0_mean.nii.gz -axis 3
 # scil_volume_math mean b0.nii.gz b0_mean.nii.gz
 
 # Step 4: Skull-Stripping (BET) of b0 and applying it to DWI
-bet b0_mean.nii.gz b0_mean_bet.nii.gz -m
+bet b0_mean.nii.gz b0_mean_bet.nii.gz -m -R -f 0.3
 
 # Step 5: Fit the DTI model
 echo "Step 5: Fitting the Diffusion Tensor model..."

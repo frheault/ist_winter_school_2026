@@ -9,3 +9,8 @@ nifti_data/
 *.mif
 *.mat
 *.txt
+*.json
+*.sif
+zenodo_scil_atlas/
+/bundleseg_automated/
+installation_check.log

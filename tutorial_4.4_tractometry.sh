@@ -35,7 +35,7 @@ TRACTOMETRY_DIR="tractometry_results"
 mkdir -p "${TRACTOMETRY_DIR}/json_tmp"
 
 # Main Loop: Process each bundle #
-for bundle_file in ${BUNDLE_DIR}/*.tck; do
+for bundle_file in ${BUNDLE_DIR}/AF_*.tck; do
     # Extract a clean base name for the bundle (e.g., "AF_left")
     bname=$(basename "$bundle_file" .tck)
     echo "--- Processing bundle: ${bname} ---"
@@ -44,7 +44,7 @@ for bundle_file in ${BUNDLE_DIR}/*.tck; do
     # Step 1: Compute Bundle Centroid #
     centroid_file="${TRACTOMETRY_DIR}/${bname}_centroid.tck"
     scil_bundle_compute_centroid "$bundle_file" "$centroid_file" --nb_points 10 --reference fa.nii.gz -f
-
+    scil_bundle_uniformize_endpoints "$centroid_file" "$centroid_file" --auto --reference fa.nii.gz -f
 
     # Step 2: Create Label and Distance Maps #
     label_map_dir="${TRACTOMETRY_DIR}/${bname}_labelling"
@@ -66,6 +66,9 @@ done
 
 # Step 5: Aggregate All Results
 echo "Step 5: Aggregating all results into a single JSON file..."
-scil_json_merge_entries ${TRACTOMETRY_DIR}/json_tmp/*.json tractometry_results.json \
+scil_json_merge_entries ${TRACTOMETRY_DIR}/json_tmp/*_profile.json tractometry_profiles.json \
     --no_list --add_parent_key "sub-01"
-echo "The final results are in 'tractometry_results.json'."
+scil_json_merge_entries ${TRACTOMETRY_DIR}/json_tmp/*_whole_bundle.json tractometry_whole_bundles.json \
+    --no_list --add_parent_key "sub-01"
+scil_plot_stats_per_point.py tractometry_profiles.json tractometry_profiles_plot/
+echo "The final results are in 'tractometry_profiles_plot.json'."

@@ -19,7 +19,7 @@
 # ======================================================================
 
 T1_FILE="bids_data/sub-01/ses-01/anat/t1.nii.gz"
-TRACTOGRAM="wb_100k.tck"
+TRACTOGRAM="wb_250k.tck"
 
 # Step 1: Generate an Anatomical Parcellation
 #
@@ -28,18 +28,15 @@ echo "# In a real analysis, you would run the following command (takes several h
 echo "export SUBJECTS_DIR=."
 echo "recon-all -s sub-01 -i $T1_FILE -all"
 echo "mri_convert sub-01/mri/aparc+aseg.mgz aparc+aseg.nii.gz"
-# For this hands-on session, we will use the segmentation we already generated from the FA map
-# in hands-on session 2.6, as it is a good approximation.
+# For this hands-on session, we will use an AI segmentation from an b0 we already generated in 3.6
 
-mri_synthseg --i fa.nii.gz --o fa_synthseg.nii.gz --parc --robust 
-# Go on https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/AnatomicalROI/FreeSurferColorLUT?action=raw and CTRL-S
-# Delete the first and last few line to keep only the Table
 echo "Using existing segmentation (aparc+aseg.nii.gz) as a stand-in for FreeSurfer output."
+labelconvert b0_synthseg.nii.gz template/FreeSurferColorLUT.txt template/MrtrixLUT.txt synthseg_relabeled_nodes.nii.gz
 echo
 
 # Step 2: Build the Connectivity Matrix
 echo "Step 2: Building the streamline-count connectome..."
-tck2connectome "$TRACTOGRAM" aparc+aseg.nii.gz connectome.csv -out_assignments assignments.txt
+tck2connectome "$TRACTOGRAM" synthseg_relabeled_nodes.nii.gz connectome.csv -out_assignments assignments.txt
 # scilpy alternative for tck2connectome (multi-step)
 # scil_tractogram_segment_connections_from_labels "$TRACTOGRAM" aparc+aseg.nii.gz connections.h5
 # scil_connectivity_compute_matrices connections.h5 aparc+aseg.nii.gz --streamline_count connectome.npy

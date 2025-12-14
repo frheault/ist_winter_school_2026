@@ -34,10 +34,10 @@ ATLAS="b0_synthseg.nii.gz"
 
 echo "Step 0: Generating a whole-brain tractogram (100k streamlines)..."
 # Create a whole-brain seed mask (in this case, the brain mask is sufficient)
-tckgen "$WMFOD" wb_100k.tck -seed_image "$MASK" -mask "$MASK" -select 100000
+tckgen "$WMFOD" wb_250k.tck -seed_image "$MASK" -mask "$MASK" -select 250000
 # scilpy alternative for tckgen
 # scil_tracking_local "$WMFOD" "$MASK" "$MASK" wb_100k.tck --algo prob --nt 100000
-echo "Generated wb_100k.tck"
+echo "Generated wb_250k.tck"
 echo
 
 # ---
@@ -61,12 +61,12 @@ mrcalc "$ATLAS" 16 -eq brainstem_roi.nii.gz
 # Command Explanation:
 # 'tckedit' is the MRtrix tool for filtering tractograms.
 # -include : Specifies an inclusion ROI.
-# The command below reads as: "From wb_100k.tck, keep only the
+# The command below reads as: "From wb_250k.tck, keep only the
 # streamlines that pass through precentral_L_roi.nii.gz AND also
 # pass through brainstem_roi.nii.gz".
-tckedit wb_100k.tck CST_L.tck -include precentral_L_roi.nii.gz -include brainstem_roi.nii.gz
+tckedit wb_250k.tck CST_L.tck -include precentral_L_roi.nii.gz -include brainstem_roi.nii.gz
 # scilpy alternative for tckedit
-# scil_tractogram_filter_by_roi wb_100k.tck CST_L.tck --drawn_roi precentral_L_roi.nii.gz either_end include --drawn_roi brainstem_roi.nii.gz either_end include --reference "$MASK"
+# scil_tractogram_filter_by_roi wb_250k.tck CST_L.tck --drawn_roi precentral_L_roi.nii.gz either_end include --drawn_roi brainstem_roi.nii.gz either_end include --reference "$MASK"
 echo "Generated CST_L.tck"
 echo
 
@@ -79,15 +79,16 @@ echo
 # Download the necessary model for BundleSeg
 curl https://zenodo.org/records/10103446/files/config.zip?download=1 -o config.zip
 curl https://zenodo.org/records/10103446/files/atlas.zip?download=1 -o atlas.zip
-unzip config.zip -d zenodo_scil_atlas 
-unzip atlas.zip -d zenodo_scil_atlas
+unzip -q config.zip -d zenodo_scil_atlas
+unzip -q atlas.zip -d zenodo_scil_atlas
 rm atlas.zip config.zip
 
 # Command Explanation:
 # 'scil_tractogram_segment_with_bundleseg.py' is the script for this task.
 # It takes the whole-brain tractogram and a directory for the output bundles.
 # --bdo : Specifies the output directory for bundle-specific data objects.
-scil_tractogram_segment_with_bundleseg wb_100k.tck zenodo_scil_atlas/config_fss_1.json zenodo_scil_atlas/atlas/ from_mni0GenericAffine.mat --out_dir bundleseg_automated --inverse --processes 4 -v DEBUG --reference b0_mean_bet.nii.gz
+scil_tractogram_segment_with_bundleseg wb_250k.tck zenodo_scil_atlas/config_fss_1.json zenodo_scil_atlas/atlas/ from_mni0GenericAffine.mat \
+	--out_dir bundleseg_automated --modify_distance_thr 1 --inverse --processes 4 -v DEBUG --reference b0_mean_bet.nii.gz
 echo "Automated segmentation complete. Results are in the 'bundleseg_automated' directory."
 echo
 

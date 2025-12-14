@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN wget --no-check-certificate -qO- "https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.4.1/freesurfer-linux-ubuntu22_amd64-7.4.1.tar.gz"  | tar zxv --no-same-owner -C /opt/
-RUN rm /opt/freesurfer/bin/fspython
 
 # Main stage from scilus base image.
 FROM $SCILUS_BASE_IMAGE AS runtime

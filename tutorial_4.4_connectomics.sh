@@ -50,3 +50,17 @@ connectome2tck "$TRACTOGRAM" assignments.txt connections/edge-
 # scil_tractogram_convert_hdf5_to_trk connections.h5 connectome/
 
 echo "hands-on session 4.4 (Part 1) complete. You have generated a structural connectome."
+
+# Step 3: Visualize the connectome
+echo "Step 3: Visualizing the connectome..."
+echo "Launching mrview to inspect the connectome."
+echo "In the connectome tool window (could be hidden behind the main window):"
+echo "  - Go to 'File' -> 'Load matrix' -> 'connectome.csv'"
+echo "  - In 'Edge visualisation', change 'Visibility' to 'All'"
+echo "  - To see anatomical labels, go to 'File' -> 'Load node stats' -> and select 'synthseg_relabeled_nodes.nii.gz'"
+mrview fa.nii.gz -connectome.init synthseg_relabeled_nodes.nii.gz -connectome.load connectome.csv
+
+echo "For more advanced visualization options, refer to the MRtrix3 documentation:"
+echo "https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/connectome_tool.html"
+# Added per user request: https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/connectome_tool.html
+echo "For more advanced visualization options, refer to the MRtrix3 documentation: https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/connectome_tool.html"

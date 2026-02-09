@@ -12,6 +12,14 @@ echo " dMRI Winter School - Installation Check (v4)"    | tee -a "$LOG_FILE"
 echo "=================================================" | tee -a "$LOG_FILE"
 echo "Detailed log will be saved to: $LOG_FILE"
 
+# Source FreeSurfer if FREESURFER_HOME is set
+if [ -n "$FREESURFER_HOME" ]; then
+    echo "Sourcing FreeSurfer environment from $FREESURFER_HOME/SetUpFreeSurfer.sh" | tee -a "$LOG_FILE"
+    . "$FREESURFER_HOME/SetUpFreeSurfer.sh"
+else
+    echo "FREESURFER_HOME not set, skipping FreeSurfer environment setup." | tee -a "$LOG_FILE"
+fi
+
 # --- Helper Function ---
 check_command() {
     local cmd_name=$1

@@ -8,10 +8,11 @@ nifti_data/
 *.tck
 *.mif
 *.mat
-*.txt
 *.json
 *.sif
 zenodo_scil_atlas/
 bundleseg_automated/
 connections/
 installation_check.log
+assignments.txt
+frf.txt

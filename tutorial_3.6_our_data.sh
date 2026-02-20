@@ -28,25 +28,31 @@ ATLAS="fa_cc.nii.gz"
 # ---
 #
 # Step 0: Generate a Whole-Brain Tractogram
-#
+# --> Run synthseg to extract rough anatomical segmentation for seeding and masking
 mri_synthseg --i b0_mean_bet.nii.gz --o b0_synthseg.nii.gz --robust --parc --cpu
 ATLAS="b0_synthseg.nii.gz"
 
-echo "Step 0: Generating a whole-brain tractogram (100k streamlines)..."
-# Create a whole-brain seed mask (in this case, the brain mask is sufficient)
-tckgen "$WMFOD" wb_250k.tck -seed_image "$MASK" -mask "$MASK" -select 250000
+# --> Optional - Extract WM mask from the Syntheseg output to seed tractography
+WM_MASK="wm_mask.nii.gz"
+mri_extract_label "$ATLAS" 2 41 -o "$WM_MASK"
+#mrtrix alterative for mri_extract_label
+#mrcalc "$ATLAS" 2 -eq wm_mask.nii.gz
+
+# --> Generate whole-brain tractogram 
+echo "Generating a whole-brain tractogram (250k streamlines)..."
+tckgen "$WMFOD" wb_250k.tck -seed_image "$WM_MASK" -mask "$MASK" -select 250000
 # scilpy alternative for tckgen
-# scil_tracking_local "$WMFOD" "$MASK" "$MASK" wb_100k.tck --algo prob --nt 100000
+# scil_tracking_local "$WMFOD" "$MASK" "$MASK" wb_250k.tck --algo prob --nt 250000
 echo "Generated wb_250k.tck"
 echo
-
 # ---
 #
 # Step 1: Manual-Style Segmentation with ROIs
 #
 echo "Step 1: Performing manual-style segmentation of the Corticospinal Tract..."
+# Fully manual: Transform tck to trk for track_vis virtual dissections
 
-# Create the inclusion ROIs from the SynthSeg atlas
+# Semi-automated: Create the inclusion ROIs from the SynthSeg atlas
 # Label 1024: Left Precentral Gyrus
 # Label 16: Brainstem
 mrcalc "$ATLAS" 1024 -eq precentral_L_roi.nii.gz
@@ -58,8 +64,8 @@ mrcalc "$ATLAS" 16 -eq brainstem_roi.nii.gz
 # scil_volume_math lower_threshold_eq "$ATLAS" 16 brainstem_roi.nii.gz
 # scil_volume_math upper_threshold_eq brainstem_roi.nii.gz 16 brainstem_roi.nii.gz -f
 
-# Command Explanation:
-# 'tckedit' is the MRtrix tool for filtering tractograms.
+# --> Modify whole-brain tractogram to extract specific stremalines passing through both ROIs
+# Command explanation: 'tckedit' is the MRtrix tool for filtering tractograms.
 # -include : Specifies an inclusion ROI.
 # The command below reads as: "From wb_250k.tck, keep only the
 # streamlines that pass through precentral_L_roi.nii.gz AND also
@@ -69,8 +75,10 @@ tckedit wb_250k.tck CST_L.tck -include precentral_L_roi.nii.gz -include brainste
 # scil_tractogram_filter_by_roi wb_250k.tck CST_L.tck --drawn_roi precentral_L_roi.nii.gz either_end include --drawn_roi brainstem_roi.nii.gz either_end include --reference "$MASK"
 echo "Generated CST_L.tck"
 echo
-
+# convert to trk for track_vis
+# Visualize the result in MRview
 # ---
+# --> Optional: add exclusion ROIs to further refine the bundle!
 #
 # Step 2: Automated Segmentation with BundleSeg
 #

@@ -23,7 +23,6 @@
 
 WMFOD="wmfod.nii.gz"
 MASK="b0_mean_bet_mask.nii.gz"
-ATLAS="fa_cc.nii.gz"
 
 # ---
 #
@@ -51,6 +50,7 @@ echo
 #
 echo "Step 1: Performing manual-style segmentation of the Corticospinal Tract..."
 # Fully manual: Transform tck to trk for track_vis virtual dissections
+scil_tractogram_convert wb_250k.tck wb_250k.trk --reference ${ATLAS}
 
 # Semi-automated: Create the inclusion ROIs from the SynthSeg atlas
 # Label 1024: Left Precentral Gyrus
@@ -75,7 +75,7 @@ tckedit wb_250k.tck CST_L.tck -include precentral_L_roi.nii.gz -include brainste
 # scil_tractogram_filter_by_roi wb_250k.tck CST_L.tck --drawn_roi precentral_L_roi.nii.gz either_end include --drawn_roi brainstem_roi.nii.gz either_end include --reference "$MASK"
 echo "Generated CST_L.tck"
 echo
-# convert to trk for track_vis
+
 # Visualize the result in MRview
 # ---
 # --> Optional: add exclusion ROIs to further refine the bundle!

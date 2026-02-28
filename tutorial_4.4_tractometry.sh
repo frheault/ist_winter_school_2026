@@ -70,5 +70,5 @@ scil_json_merge_entries ${TRACTOMETRY_DIR}/json_tmp/*_profile.json tractometry_p
     --no_list --add_parent_key "sub-01"
 scil_json_merge_entries ${TRACTOMETRY_DIR}/json_tmp/*_whole_bundle.json tractometry_whole_bundles.json \
     --no_list --add_parent_key "sub-01"
-scil_plot_stats_per_point.py tractometry_profiles.json tractometry_profiles_plot/
+scil_plot_stats_per_point tractometry_profiles.json tractometry_profiles_plot/
 echo "The final results are in 'tractometry_profiles_plot.json'."

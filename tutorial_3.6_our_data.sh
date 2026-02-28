@@ -95,7 +95,7 @@ rm atlas.zip config.zip
 # 'scil_tractogram_segment_with_bundleseg.py' is the script for this task.
 # It takes the whole-brain tractogram and a directory for the output bundles.
 # --bdo : Specifies the output directory for bundle-specific data objects.
-scil_tractogram_segment_with_bundleseg wb_250k.tck zenodo_scil_atlas/config_fss_1.json zenodo_scil_atlas/atlas/ from_mni0GenericAffine.mat \
+scil_tractogram_segment_with_bundleseg wb_250k.tck zenodo_scil_atlas/config_fss_1.json zenodo_scil_atlas/atlas/ from_mni_fsl_ras_fix.txt \
 	--out_dir bundleseg_automated --modify_distance_thr 1 --inverse --processes 4 -v DEBUG --reference b0_mean_bet.nii.gz
 echo "Automated segmentation complete. Results are in the 'bundleseg_automated' directory."
 echo

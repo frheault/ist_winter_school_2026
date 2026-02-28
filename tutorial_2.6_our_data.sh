@@ -22,18 +22,15 @@
 
 # 
 #
-# Step 1: Generate an Anatomical Segmentation
-#
 echo "Step 1: Generating anatomical segmentation from the FA map..."
 # Step 1: Generate an Anatomical Segmentation (Skipped due to issues)
-antsRegistrationSyNQuick.sh -d 3 -f fa.nii.gz -m template/mni_masked.nii.gz -o from_mni
-antsApplyTransforms -d 3 -i template/cc.nii.gz -o fa_cc.nii.gz -r fa.nii.gz -t from_mni1Warp.nii.gz from_mni0GenericAffine.mat -u char -n NearestNeighbor
+# antsRegistrationSyNQuick.sh -d 3 -f fa.nii.gz -m template/mni_masked.nii.gz -o from_mni -t a
+# antsApplyTransforms -d 3 -i template/cc.nii.gz -o fa_cc.nii.gz -r fa.nii.gz -t from_mni1Warp.nii.gz from_mni0GenericAffine.mat -u char -n NearestNeighbor
+flirt -in template/mni_masked.nii.gz -ref fa.nii.gz -omat from_mni_fsl_mat.txt -dof 12
+flirt -in template/cc.nii.gz -ref fa.nii.gz -applyxfm -init from_mni_fsl_mat.txt -out fa_cc.nii.gz -interp nearestneighbour
+transformconvert mni_to_fa_affine.mat template/mni_masked.nii.gz fa.nii.gz flirt_import ants_affine.txt
 
-
-# Step 2: Run Deterministic DTI Tractography (Whole-brain for testing)
-
-echo "Step 3: Running whole-brain deterministic DTI tractography for testing..."
-
+echo "Step 2: Running whole-brain deterministic DTI tractography for testing..."
 mrcalc bids_data/sub-01/ses-01/dwi/dwi.nii.gz b0_mean_bet_mask.nii.gz -mult dwi_brain.nii.gz
 # scilpy alternative for mrcalc
 # scil_volume_math multiplication bids_data/sub-01/ses-01/dwi/dwi.nii.gz b0_mean_bet_mask.nii.gz dwi_brain.nii.gz

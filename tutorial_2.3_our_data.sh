@@ -29,45 +29,56 @@
 #   - ev.nii.gz (Eigenvector map)
 # ======================================================================
 
-# Step 1: Inspect Headers
+# # Step 1: Inspect Headers
 
 echo "Step 1: Inspecting DWI data headers with mrinfo..."
+# [MRtrix Version]
 mrinfo bids_data/sub-01/ses-01/dwi/dwi.nii.gz
-# scilpy alternative for mrinfo
+
+# [scilpy Version]
 # scil_header_print_info bids_data/sub-01/ses-01/dwi/dwi.nii.gz
-# Try with: fslhd bids_data/sub-01/ses-01/dwi/dwi.nii.gz
 # Try with: scil_header_info
 
+# [FSL Version]
+# fslhd bids_data/sub-01/ses-01/dwi/dwi.nii.gz
 
-echo "Step 1: Inspecting T1w data headers with mrinfo..."
+
+echo "Step 2: Inspecting T1w data headers with mrinfo..."
+# [MRtrix Version]
 mrinfo bids_data/sub-01/ses-01/anat/t1.nii.gz
-# scilpy alternative for mrinfo
+
+# [scilpy Version]
 # scil_header_print_info bids_data/sub-01/ses-01/anat/t1.nii.gz
 
-# Step 2: Inspect and Visualize b-values and b-vectors
-echo "Step 2: Displaying b-values and b-vectors (first few lines)..."
+# # Step 3: Inspect and Visualize b-values and b-vectors
+echo "Step 3: Displaying b-values and b-vectors (first few lines)..."
 head -n 1 bids_data/sub-01/ses-01/dwi/dwi.bval
 head -n 3 bids_data/sub-01/ses-01/dwi/dwi.bvec
 
-# Step 3: Extract b0 image
-echo "Step 3: Extracting b0 image..."
+# # Step 4: Extract b0 image
+echo "Step 4: Extracting b0 image..."
+# [MRtrix Version]
 dwiextract bids_data/sub-01/ses-01/dwi/dwi.nii.gz b0.nii.gz -fslgrad bids_data/sub-01/ses-01/dwi/dwi.bvec bids_data/sub-01/ses-01/dwi/dwi.bval -bzero
-# scilpy alternative for dwiextract
-# scil_dwi_extract_b0 bids_data/sub-01/ses-01/dwi/dwi.nii.gz bids_data/sub-01/ses-01/dwi/dwi.bval bids_data/sub-01/ses-01/dwi/dwi.bvec b0.nii.gz --all
 mrmath b0.nii.gz mean b0_mean.nii.gz -axis 3
-# scilpy alternative for mrmath
+
+# [scilpy Version]
+# scil_dwi_extract_b0 bids_data/sub-01/ses-01/dwi/dwi.nii.gz bids_data/sub-01/ses-01/dwi/dwi.bval bids_data/sub-01/ses-01/dwi/dwi.bvec b0.nii.gz --all
 # scil_volume_math mean b0.nii.gz b0_mean.nii.gz
 
-# Step 4: Skull-Stripping (BET) of b0 and applying it to DWI
+# # Step 5: Skull-Stripping (BET) of b0 and applying it to DWI
+# [FSL Version]
 bet b0_mean.nii.gz b0_mean_bet.nii.gz -m -R -f 0.3
 
-# Step 5: Fit the DTI model
-echo "Step 5: Fitting the Diffusion Tensor model..."
+# # Step 6: Fit the DTI model
+echo "Step 6: Fitting the Diffusion Tensor model..."
+# [MRtrix Version]
 dwi2tensor bids_data/sub-01/ses-01/dwi/dwi.nii.gz dti.nii.gz -mask b0_mean_bet_mask.nii.gz -fslgrad bids_data/sub-01/ses-01/dwi/dwi.bvec bids_data/sub-01/ses-01/dwi/dwi.bval
-# scilpy alternative for dwi2tensor (do both tensor AND metrics at once)
+
+# [scilpy Version] (do both tensor AND metrics at once)
 # scil_dti_metrics bids_data/sub-01/ses-01/dwi/dwi.nii.gz bids_data/sub-01/ses-01/dwi/dwi.bval bids_data/sub-01/ses-01/dwi/dwi.bvec --tensor dti.nii.gz --rgb rgb.nii.gz --fa fa.nii.gz --not_all --mask b0_mean_bet_mask.nii.gz
 
-# Step 6: Calculate Scalar Maps (FA, MD, RGB, EV)
-echo "Step 6: Calculating scalar maps (FA, MD, RGB, EV)..."
+# # Step 7: Calculate Scalar Maps (FA, MD, RGB, EV)
+echo "Step 7: Calculating scalar maps (FA, MD, RGB, EV)..."
+# [MRtrix Version]
 tensor2metric -fa fa.nii.gz -adc md.nii.gz -vector rgb.nii.gz dti.nii.gz -mask b0_mean_bet_mask.nii.gz
 echo "Tutorial 2.3 completed. Please inspect the generated FA and RGB maps in mrview for quality control."

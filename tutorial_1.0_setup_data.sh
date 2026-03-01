@@ -14,7 +14,7 @@
 #   - Placeholder files for raw DWI and T1w data.
 # ======================================================================
 
-# Step 1: Create the BIDS Directory Structure
+# # Step 1: Create the BIDS Directory Structure
 
 unzip dicom_filtered_sub01.zip
 mkdir nifti_data

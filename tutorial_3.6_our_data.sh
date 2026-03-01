@@ -2,7 +2,7 @@
 # For pedagogical context, notes, and tips, refer to NOTEBOOK.md.
 #
 # ======================================================================
-# dMRI Winter School - hands-on 3.6 (Our Data)
+# dMRI Winter School - Tutorial 3.6 (Our Data)
 #
 # Theme: Hands-on bundle segmentation
 #
@@ -12,7 +12,7 @@
 #
 # Inputs:
 #   - wmfod.nii.gz (fODFs from hands-on session 3.3)
-#   - b0_b0_mean_bet_mask.nii.gz (Brain mask from Day 2)
+#   - b0_mean_bet_mask.nii.gz (Brain mask from Day 2)
 #   - fa_synthseg.nii.gz (Anatomical segmentation from hands-on session 2.6)
 #
 # Outputs:
@@ -21,47 +21,41 @@
 #   - A directory ('bundleseg_automated') with automatically segmented bundles
 # ======================================================================
 
-WMFOD="wmfod.nii.gz"
-MASK="b0_mean_bet_mask.nii.gz"
-
-# ---
-#
-# Step 0: Generate a Whole-Brain Tractogram
+# # Step 1: Generate a Whole-Brain Tractogram
 # --> Run synthseg to extract rough anatomical segmentation for seeding and masking
 mri_synthseg --i b0_mean_bet.nii.gz --o b0_synthseg.nii.gz --robust --parc --cpu
-ATLAS="b0_synthseg.nii.gz"
+# If the previous command fail (on MacOS) or due to RAM usage, you can transform the labels
+# from template/mni_synthseg.nii.gz using yesterday's flirt/ants command.
 
 # --> Optional - Extract WM mask from the Syntheseg output to seed tractography
-WM_MASK="wm_mask.nii.gz"
-mri_extract_label "$ATLAS" 2 41 -o "$WM_MASK"
-#mrtrix alterative for mri_extract_label
-#mrcalc "$ATLAS" 2 -eq wm_mask.nii.gz
+mri_extract_label b0_synthseg.nii.gz 2 41 -o wm_mask.nii.gz
+
+# [MRtrix Version]
+# mrcalc b0_synthseg.nii.gz 2 -eq wm_mask.nii.gz
 
 # --> Generate whole-brain tractogram 
-echo "Generating a whole-brain tractogram (250k streamlines)..."
-tckgen "$WMFOD" wb_250k.tck -seed_image "$WM_MASK" -mask "$MASK" -select 250000
+echo "Step 1: Generating a whole-brain tractogram (250k streamlines)..."
+tckgen wmfod.nii.gz wb_250k.tck -seed_image wm_mask.nii.gz -mask b0_mean_bet_mask.nii.gz -select 250000
 # scilpy alternative for tckgen
-# scil_tracking_local "$WMFOD" "$MASK" "$MASK" wb_250k.tck --algo prob --nt 250000
+# scil_tracking_local wmfod.nii.gz b0_mean_bet_mask.nii.gz b0_mean_bet_mask.nii.gz wb_250k.tck --algo prob --nt 250000
 echo "Generated wb_250k.tck"
 echo
-# ---
-#
-# Step 1: Manual-Style Segmentation with ROIs
-#
-echo "Step 1: Performing manual-style segmentation of the Corticospinal Tract..."
+
+# # Step 2: Manual-Style Segmentation with ROIs
+echo "Step 2: Performing manual-style segmentation of the Corticospinal Tract..."
 # Fully manual: Transform tck to trk for track_vis virtual dissections
-scil_tractogram_convert wb_250k.tck wb_250k.trk --reference ${ATLAS}
+scil_tractogram_convert wb_250k.tck wb_250k.trk --reference b0_synthseg.nii.gz
 
 # Semi-automated: Create the inclusion ROIs from the SynthSeg atlas
 # Label 1024: Left Precentral Gyrus
 # Label 16: Brainstem
-mrcalc "$ATLAS" 1024 -eq precentral_L_roi.nii.gz
+mrcalc b0_synthseg.nii.gz 1024 -eq precentral_L_roi.nii.gz
 # scilpy alternative for mrcalc
-# scil_volume_math lower_threshold_eq "$ATLAS" 1024 precentral_L_roi.nii.gz
+# scil_volume_math lower_threshold_eq b0_synthseg.nii.gz 1024 precentral_L_roi.nii.gz
 # scil_volume_math upper_threshold_eq precentral_L_roi.nii.gz 1024 precentral_L_roi.nii.gz -f
-mrcalc "$ATLAS" 16 -eq brainstem_roi.nii.gz
+mrcalc b0_synthseg.nii.gz 16 -eq brainstem_roi.nii.gz
 # scilpy alternative for mrcalc
-# scil_volume_math lower_threshold_eq "$ATLAS" 16 brainstem_roi.nii.gz
+# scil_volume_math lower_threshold_eq b0_synthseg.nii.gz 16 brainstem_roi.nii.gz
 # scil_volume_math upper_threshold_eq brainstem_roi.nii.gz 16 brainstem_roi.nii.gz -f
 
 # --> Modify whole-brain tractogram to extract specific stremalines passing through both ROIs
@@ -72,17 +66,12 @@ mrcalc "$ATLAS" 16 -eq brainstem_roi.nii.gz
 # pass through brainstem_roi.nii.gz".
 tckedit wb_250k.tck CST_L.tck -include precentral_L_roi.nii.gz -include brainstem_roi.nii.gz
 # scilpy alternative for tckedit
-# scil_tractogram_filter_by_roi wb_250k.tck CST_L.tck --drawn_roi precentral_L_roi.nii.gz either_end include --drawn_roi brainstem_roi.nii.gz either_end include --reference "$MASK"
+# scil_tractogram_filter_by_roi wb_250k.tck CST_L.tck --drawn_roi precentral_L_roi.nii.gz either_end include --drawn_roi brainstem_roi.nii.gz either_end include --reference b0_mean_bet_mask.nii.gz
 echo "Generated CST_L.tck"
 echo
 
-# Visualize the result in MRview
-# ---
-# --> Optional: add exclusion ROIs to further refine the bundle!
-#
-# Step 2: Automated Segmentation with BundleSeg
-#
-# echo "Step 2: Performing automated segmentation with BundleSeg..."
+# # Step 3: Automated Segmentation with BundleSeg
+echo "Step 3: Performing automated segmentation with BundleSeg..."
 
 # Download the necessary model for BundleSeg
 curl https://zenodo.org/records/10103446/files/config.zip?download=1 -o config.zip
@@ -100,4 +89,4 @@ scil_tractogram_segment_with_bundleseg wb_250k.tck zenodo_scil_atlas/config_fss_
 echo "Automated segmentation complete. Results are in the 'bundleseg_automated' directory."
 echo
 
-echo "hands-on session 3.6 complete. You have extracted specific white matter bundles from a tractogram."
+echo "Tutorial 3.6 complete. You have extracted specific white matter bundles from a tractogram."

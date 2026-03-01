@@ -4,6 +4,48 @@ This guide is a personal reference for the dMRI Winter School hands-on tutorials
 
 ---
 
+## Installation and Setup
+
+### Docker Environment
+
+The environment for these tutorials is provided as a Docker image containing all necessary neuroimaging tools (MRTrix3, FSL, ANTs, SCILPY, etc.).
+
+#### Docker Pull (Recommended)
+The pre-built image is available on DockerHub. You can pull it directly using:
+
+```bash
+docker pull <your-dockerhub-username>/ist_ws_2026:latest
+```
+
+#### Building from Scratch
+If you need to rebuild the environment locally, use the provided multi-stage `Dockerfile`:
+
+```bash
+docker build -t ist_ws_2026 .
+```
+
+#### Running the Container
+To start the container, it is highly recommended to use an **explicit absolute path** for volume binding to ensure consistency across different operating systems and shells. Replace `/absolute/path/to/ist_winter_school_2026` with the actual path on your machine:
+
+```bash
+docker run -it --rm -v /absolute/path/to/ist_winter_school_2026:/data -w /data ist_ws_2026
+```
+
+### System Requirements & Known Issues
+
+*   **RAM Limitations**: Some commands (such as `tckgen` with high streamline counts or `mri_synthseg`) are memory-intensive. If your system has **8GB of RAM or less**, these commands may crash or cause the container to exit. Ensure you have allocated sufficient memory to your Docker engine.
+*   **Apple Silicon (M1/M2/M3)**: Users on newer Macs may encounter challenges with certain commands due to virtualization overhead or architecture differences. If you experience unexpected failures, verify your Docker Desktop settings for Rosetta 2 emulation.
+
+### FSL Alternative Workflow
+
+While the primary tutorials utilize MRTrix3 for most operations, an alternative workflow using FSL tools is also supported for core diffusion processing:
+
+* **Pre-processing**: `eddy` and `topup` (if fieldmaps are available) for distortion correction.
+* **Tensor Fitting**: `dtifit` can be used as an alternative to `dwi2tensor` to generate FA, MD, and V1 maps.
+* **Tractography**: `probtrackx2` (part of FSL's FDT) provides a Bayesian approach to probabilistic tractography, which can be used as an alternative to MRTrix3's `tckgen`.
+
+---
+
 ## Hands-on 1.0: Setup and data download
 
 ### Step 1: Create BIDS directory structure
@@ -115,7 +157,7 @@ This guide is a personal reference for the dMRI Winter School hands-on tutorials
 * **Context**: With the nodes (parcellation) and the pathways (tractogram) defined, we can build the connectome by counting the number of streamlines that connect every pair of nodes.
 * **Action**: The script uses `tck2connectome` to generate the connectivity matrix, taking the whole-brain tractogram and the parcellation file as input.
 * **Command explanation**: The `-symmetric` flag ensures the connection from A to B is counted the same as B to A, and `-zero_diagonal` removes self-connections (streamlines starting and ending in the same node).
-* **Quality control**: Open the output `connectome.csv`. It should be a large numerical matrix where each cell represents the streamline count between the two regions corresponding to that row and column.
+* **Quality control**: Open the output `connectome.csv`. It should be a large numerical matrix where each cell represents the streamline count between the two regions corresponding to that row and column. For more advanced visualization options, refer to the [MRtrix3 connectome tool documentation](https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/connectome_tool.html). For more advanced visualization options, refer to the [MRtrix3 connectome tool documentation](https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/connectome_tool.html).
 
 ---
 
